@@ -136,23 +136,11 @@ textarea:focus{border-color:var(--field);outline:none;box-shadow:0 0 0 3px var(-
 
   <section class="screen" id="screen-intro" hidden>
     <h1>Préparation de notre journée d'équipe</h1>
-    <p class="lead">Ce questionnaire est individuel et anonyme. Il n'y a pas de bonne ou de mauvaise réponse : ce qui compte, c'est votre regard sur la façon dont l'équipe fonctionne aujourd'hui.</p>
-
-    <div class="keys">
-      <div class="key">
-        <strong>La RH</strong>
-        <p>sait qui a reçu quel lien, mais ne voit aucune réponse.</p>
-      </div>
-      <div class="key">
-        <strong>Les coachs de MetaBlob</strong>
-        <p>lisent les réponses, mais ne savent pas qui a reçu quel lien.</p>
-      </div>
-    </div>
+    <p class="lead">Ce questionnaire est individuel et confidentiel. Il n'y a pas de bonne ou de mauvaise réponse : ce qui compte, c'est votre regard sur la façon dont l'équipe fonctionne aujourd'hui.</p>
 
     <ul class="facts">
       <li>Environ 8 minutes.</li>
       <li>Aucune donnée personnelle n'est demandée.</li>
-      <li>La direction ne reçoit qu'une synthèse globale, sans aucune réponse individuelle.</li>
       <li id="deadline" hidden></li>
     </ul>
 
@@ -163,7 +151,7 @@ textarea:focus{border-color:var(--field);outline:none;box-shadow:0 0 0 3px var(-
 
   <section class="screen" id="screen-done" hidden>
     <h1>Merci, vos réponses sont bien arrivées.</h1>
-    <p class="lead">Elles seront lues avec celles de vos collègues, sans lien avec votre nom. Vous pouvez fermer cette page.</p>
+    <p class="lead">Vous pouvez fermer cette page.</p>
   </section>
 </main>
 
@@ -348,18 +336,19 @@ async function init(){
   if (ENDPOINT.indexOf('COLLEZ') === 0) return message('Questionnaire pas encore configuré', 'L\u2019adresse du script n\u2019est pas renseignée dans le fichier.');
   buildForm();
   if (DEADLINE) { const d = $('#deadline'); d.textContent = 'Merci de répondre avant ' + DEADLINE + '.'; d.hidden = false; }
+  // Accueil affiché tout de suite ; la vérification du lien se fait en arrière-plan.
+  setProgress(null);
+  show('screen-intro');
   try {
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 10000); // au-delà de 10 s, on affiche quand même le questionnaire
+    const timer = setTimeout(() => ctrl.abort(), 15000);
     const r = await fetch(ENDPOINT + '?check=' + encodeURIComponent(code), { signal: ctrl.signal });
     clearTimeout(timer);
     const d = await r.json();
     if (d.status === 'done')    return message('Vous avez déjà répondu', 'Ce lien a déjà servi : chaque lien ne peut être utilisé qu\u2019une fois. Merci pour votre participation.');
     if (d.status === 'unknown') return message('Ce lien n\u2019est pas reconnu', 'Vérifiez que vous avez ouvert le lien en entier. En cas de doute, redemandez-le à la personne qui vous l\u2019a envoyé.');
     if (d.status === 'closed')  return message('La collecte est terminée', 'Le questionnaire n\u2019accepte plus de réponses.');
-  } catch (e) { /* hors ligne ou Google lent : on laisse répondre, le script vérifiera à l'envoi */ }
-  setProgress(null);
-  show('screen-intro');
+  } catch (e) { /* Google lent ou hors ligne : on laisse répondre, le script vérifiera à l'envoi */ }
 }
 init();
 </script>
