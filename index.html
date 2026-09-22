@@ -349,7 +349,10 @@ async function init(){
   buildForm();
   if (DEADLINE) { const d = $('#deadline'); d.textContent = 'Merci de répondre avant ' + DEADLINE + '.'; d.hidden = false; }
   try {
-    const r = await fetch(ENDPOINT + '?check=' + encodeURIComponent(code));
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 10000); // au-delà de 10 s, on affiche quand même le questionnaire
+    const r = await fetch(ENDPOINT + '?check=' + encodeURIComponent(code), { signal: ctrl.signal });
+    clearTimeout(timer);
     const d = await r.json();
     if (d.status === 'done')    return message('Vous avez déjà répondu', 'Ce lien a déjà servi : chaque lien ne peut être utilisé qu\u2019une fois. Merci pour votre participation.');
     if (d.status === 'unknown') return message('Ce lien n\u2019est pas reconnu', 'Vérifiez que vous avez ouvert le lien en entier. En cas de doute, redemandez-le à la personne qui vous l\u2019a envoyé.');
