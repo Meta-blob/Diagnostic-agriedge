@@ -254,7 +254,7 @@ function buildForm(){
       h += it.type === 'likert' ? likertHTML(it) : it.type === 'open' ? openHTML(it) : choiceHTML(it);
     });
     const last = i === VOLETS.length - 1;
-    if (last) h += '<div class="alert" id="send-err" hidden>L\u2019envoi n\u2019a pas abouti. Vos réponses sont toujours là : vérifiez votre connexion, puis cliquez à nouveau sur « Envoyer mes réponses ».</div>';
+    if (last) h += '<div class="alert" id="send-err" hidden>L\u2019envoi n\u2019a pas abouti. Vos réponses sont toujours là : vérifiez votre connexion, puis cliquez à nouveau sur « Envoyer mes réponses ».<br><small id="send-detail" style="opacity:.75"></small></div>';
     h += '<div class="nav">' +
       (i > 0 ? '<button class="btn ghost" type="button" data-go="' + (i - 1) + '">Retour</button>' : '') +
       (last ? '<button class="btn" type="button" id="send">Envoyer mes réponses</button>'
@@ -301,8 +301,17 @@ async function submit(btn){
     if (d.reason === 'already') return message('Vous avez déjà répondu', 'Ce lien a déjà servi : chaque lien ne peut être utilisé qu\u2019une fois. Merci pour votre participation.');
     if (d.reason === 'closed')  return message('La collecte est terminée', 'Le questionnaire n\u2019accepte plus de réponses.');
     if (d.reason === 'unknown') return message('Ce lien n\u2019est pas reconnu', 'Vérifiez que vous avez ouvert le lien en entier. En cas de doute, redemandez-le à la personne qui vous l\u2019a envoyé.');
-    throw new Error('server');
+    throw new Error(d.detail || d.reason || 'réponse inattendue');
   } catch (e) {
+    // Avant d'afficher une erreur, on vérifie si la réponse est quand même arrivée.
+    try {
+      const r2 = await fetch(ENDPOINT, { method: 'POST', cache: 'no-store',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ type: 'check', code: code }) });
+      const d2 = await r2.json();
+      if (d2.status === 'done') { setProgress('done'); show('screen-done'); return; }
+    } catch (x) {}
+    $('#send-detail').textContent = 'Détail technique : ' + (e && e.message ? e.message : e);
     errBox.hidden = false;
     btn.disabled = false; btn.textContent = 'Envoyer mes réponses';
   }
