@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Questionnaire – Préparation de notre journée d'équipe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ==== Couleurs : à ajuster avec les codes exacts de la charte Agriedge ==== */
+:root{
+  --ink:#17261C;        /* texte */
+  --field:#24613D;      /* vert principal */
+  --field-dark:#1B4A2E;
+  --sprout:#8DBF4B;     /* vert clair : progression, focus */
+  --sprout-soft:#E7F0DA;
+  --paper:#F4F7F1;      /* fond */
+  --card:#FFFFFF;
+  --line:#D6E0D0;
+  --muted:#56645A;
+  --alert:#B3452C;
+  --radius:14px;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--paper);color:var(--ink);
+  font-family:"Manrope",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased;
+}
+[hidden]{display:none!important}
+:focus-visible{outline:3px solid var(--sprout);outline-offset:3px}
+
+/* En-tête */
+.top{position:sticky;top:0;z-index:5;background:rgba(244,247,241,.95);border-bottom:1px solid var(--line)}
+.top-inner{max-width:680px;margin:0 auto;padding:14px 20px;display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.brand{font-weight:800;font-size:21px;letter-spacing:-.02em;color:var(--field)}
+.brand small{font-weight:500;font-size:13px;color:var(--muted);letter-spacing:0;margin-left:8px}
+.step{font-size:14px;color:var(--muted);font-weight:600;white-space:nowrap}
+.progress{height:4px;background:var(--line)}
+.progress span{display:block;height:100%;width:0;background:var(--sprout);transition:width .45s ease}
+
+main{max-width:680px;margin:0 auto;padding:32px 20px 96px}
+h1{font-size:clamp(30px,6.4vw,42px);line-height:1.1;letter-spacing:-.025em;font-weight:800;margin:6px 0 16px}
+h2{font-size:clamp(24px,5vw,28px);letter-spacing:-.02em;line-height:1.2;margin:0 0 8px;font-weight:800}
+p{margin:0 0 14px}
+.lead{font-size:18px;max-width:60ch}
+.muted{color:var(--muted)}
+
+/* Qui voit quoi */
+.keys{display:grid;grid-template-columns:1fr 1fr;margin:28px 0 22px;border:1.5px solid var(--field);border-radius:var(--radius);overflow:hidden;background:var(--card)}
+.key{padding:18px 18px 20px}
+.key + .key{border-left:1.5px solid var(--field)}
+.key strong{display:block;font-size:17px;margin-bottom:4px;color:var(--field)}
+.key p{margin:0;font-size:15.5px}
+@media (max-width:560px){.keys{grid-template-columns:1fr}.key + .key{border-left:0;border-top:1.5px solid var(--field)}}
+
+.facts{margin:0 0 30px;padding:0;list-style:none;font-size:15.5px;color:var(--muted)}
+.facts li{padding:5px 0 5px 22px;position:relative}
+.facts li::before{content:"";position:absolute;left:4px;top:14px;width:8px;height:8px;border-radius:50%;background:var(--sprout)}
+
+/* Boutons */
+.btn{appearance:none;border:0;border-radius:999px;background:var(--field);color:#fff;font:inherit;font-weight:700;font-size:17px;padding:14px 28px;cursor:pointer;transition:background .2s}
+.btn:hover{background:var(--field-dark)}
+.btn:disabled{opacity:.6;cursor:wait}
+.btn.ghost{background:transparent;color:var(--field);padding:14px 4px}
+.btn.ghost:hover{background:transparent;text-decoration:underline}
+.nav{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:28px}
+.nav .btn:only-child{margin-left:auto}
+
+/* Questions */
+.volet-intro{color:var(--muted);margin-bottom:6px}
+.q{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px;margin:16px 0;min-width:0}
+fieldset.q{margin-inline:0}
+.q.missing{border-color:var(--alert);box-shadow:0 0 0 1px var(--alert)}
+.qtext{display:block;float:left;width:100%;padding:0;font-weight:600;font-size:17px;line-height:1.45;margin:0 0 16px}
+.num{display:inline-block;min-width:1.9em;color:var(--sprout);font-weight:800}
+.opt{font-weight:500;color:var(--muted);font-size:14px}
+.hint{clear:both;font-size:14px;color:var(--muted);margin:-8px 0 12px}
+.err{clear:both;display:none;color:var(--alert);font-size:14px;font-weight:600;margin:12px 0 0}
+.q.missing .err{display:block}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* Échelle 1 à 5 : des barres qui poussent */
+.scale{clear:both;display:grid;grid-template-columns:repeat(5,1fr);gap:8px;align-items:end}
+.scale label{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;position:relative}
+.scale input,.pill input{position:absolute;opacity:0;width:1px;height:1px}
+.bar{width:100%;border-radius:9px 9px 4px 4px;background:var(--sprout-soft);border:1.5px solid var(--line);transition:background .15s,border-color .15s}
+.scale label:hover .bar{border-color:var(--field)}
+.scale input:checked + .bar{background:var(--field);border-color:var(--field)}
+.scale input:focus-visible + .bar{outline:3px solid var(--sprout);outline-offset:2px}
+.scale .n{font-weight:700;font-size:15px}
+.scale input:checked ~ .n{color:var(--field)}
+.ends{display:flex;justify-content:space-between;gap:12px;font-size:13px;color:var(--muted);margin-top:8px}
+
+/* Choix en pastilles */
+.pill{display:block;position:relative;cursor:pointer;margin-top:10px}
+.pill span{display:block;border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;font-size:15.5px;font-weight:600;transition:background .15s,border-color .15s}
+.pill:hover span{border-color:var(--field)}
+.pill input:checked + span{background:var(--field);border-color:var(--field);color:#fff}
+.pill input:focus-visible + span{outline:3px solid var(--sprout);outline-offset:2px}
+.choices{clear:both}
+.choices .pill:first-child{margin-top:0}
+.scale + .ends + .pill{margin-top:16px}
+
+textarea{clear:both;display:block;width:100%;min-height:118px;resize:vertical;font:inherit;font-size:16px;color:var(--ink);background:#FBFCFA;border:1.5px solid var(--line);border-radius:10px;padding:12px 14px}
+textarea:focus{border-color:var(--field);outline:none;box-shadow:0 0 0 3px var(--sprout-soft)}
+
+.alert{border-left:4px solid var(--alert);background:#FBEDE8;padding:12px 14px;border-radius:6px;font-size:15.5px;margin-top:18px}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">AgriEdge<small>avec MetaBlob</small></div>
+    <div class="step" id="step" aria-live="polite"></div>
+  </div>
+  <div class="progress" aria-hidden="true"><span id="bar"></span></div>
+</header>
+
+<main>
+  <section class="screen" id="screen-loading">
+    <p class="muted">Chargement du questionnaire…</p>
+  </section>
+
+  <section class="screen" id="screen-msg" hidden>
+    <h1 id="msg-title"></h1>
+    <p class="lead" id="msg-text"></p>
+  </section>
+
+  <section class="screen" id="screen-intro" hidden>
+    <h1>Préparation de notre journée d'équipe</h1>
+    <p class="lead">Ce questionnaire est individuel et anonyme. Il n'y a pas de bonne ou de mauvaise réponse : ce qui compte, c'est votre regard sur la façon dont l'équipe fonctionne aujourd'hui.</p>
+
+    <div class="keys">
+      <div class="key">
+        <strong>La RH</strong>
+        <p>sait qui a reçu quel lien, mais ne voit aucune réponse.</p>
+      </div>
+      <div class="key">
+        <strong>Les coachs de MetaBlob</strong>
+        <p>lisent les réponses, mais ne savent pas qui a reçu quel lien.</p>
+      </div>
+    </div>
+
+    <ul class="facts">
+      <li>Environ 8 minutes.</li>
+      <li>Aucune donnée personnelle n'est demandée.</li>
+      <li>La direction ne reçoit qu'une synthèse globale, sans aucune réponse individuelle.</li>
+      <li id="deadline" hidden></li>
+    </ul>
+
+    <button class="btn" type="button" data-go="0">Commencer</button>
+  </section>
+
+  <form class="screen" id="screen-form" hidden novalidate></form>
+
+  <section class="screen" id="screen-done" hidden>
+    <h1>Merci, vos réponses sont bien arrivées.</h1>
+    <p class="lead">Elles seront lues avec celles de vos collègues, sans lien avec votre nom. Vous pouvez fermer cette page.</p>
+  </section>
+</main>
+
+<script>
+/* ==== À renseigner ==== */
+const ENDPOINT = 'https://script.google.com/macros/s/AKfycbxZVrszmCivqHkA-I5eUw_G-ymGLZ1fvK8nRKqipA0Xixgzc1-tY9Z2c4h-YMc9jcxF/exec'; // URL de l'application web Apps Script (se termine par /exec)
+const DEADLINE = '';                           // ex. 'le vendredi 3 octobre' (laisser vide pour ne rien afficher)
+
+/* ==== Questions : les identifiants doivent correspondre au script ==== */
+const NSP = 'Je ne connaissais pas ces objectifs';
+const VOLETS = [
+  { title: 'Collaboration et communication', items: [
+    { id:'q1', type:'likert', text:"L'information circule bien entre nous." },
+    { id:'q2', type:'likert', text:"Quand j'ai besoin d'un collègue, je sais vers qui me tourner et j'obtiens une réponse." },
+    { id:'q3', type:'likert', text:'Quand un sujet bloque, nous arrivons à en parler pour avancer.' },
+    { id:'q4', type:'likert', text:'Nous nous appuyons sur les compétences des uns et des autres.' },
+    { id:'q5', type:'open',   text:"Qu'est-ce qui facilite le plus notre collaboration au quotidien ? Qu'est-ce qui la complique ?" }
+  ]},
+  { title: 'Organisation du travail', items: [
+    { id:'q6',  type:'likert', text:"Je sais clairement ce qu'on attend de moi." },
+    { id:'q7',  type:'likert', text:"Nos réunions et points de suivi m'aident à avancer." },
+    { id:'q8',  type:'likert', text:'Je sais qui décide quoi.' },
+    { id:'q9',  type:'likert', text:'Nous travaillons ensemble plutôt que chacun dans son coin.' },
+    { id:'q10', type:'open',   text:'Si vous pouviez changer une seule chose dans notre façon de travailler, laquelle ?' }
+  ]},
+  { title: "Les objectifs de l'année écoulée",
+    intro: "Ce volet porte sur les objectifs de l'année dernière, pas sur ceux qui seront présentés pendant le séminaire.",
+    items: [
+    { id:'q11', type:'open', required:true, text:"Avec vos mots, quels étaient les 2 ou 3 objectifs prioritaires de l'équipe l'année dernière ? Si vous ne les connaissez pas, indiquez-le simplement." },
+    { id:'q12', type:'likert', nsp:true, text:'Je savais pourquoi ces objectifs avaient été fixés.' },
+    { id:'q13', type:'likert', nsp:true, text:'Je voyais concrètement ce que mon travail changeait dans leur atteinte.' },
+    { id:'q14', type:'likert', nsp:true, text:"En cours d'année, je savais où nous en étions par rapport à ces objectifs." },
+    { id:'q15', type:'likert', nsp:true, text:'Ces objectifs me motivaient personnellement.' },
+    { id:'q16', type:'open', text:"Qu'est-ce qui vous aurait aidé à mieux vous approprier ces objectifs ?" }
+  ]},
+  { title: 'Pour finir', items: [
+    { id:'q17', type:'choice', text:"Aujourd'hui, notre équipe ressemble plutôt à :", hint:'Une seule réponse possible.', options:[
+      'Chacun avance surtout sur ses propres objectifs.',
+      'On apprend encore à fonctionner ensemble.',
+      "On s'appuie sur les forces de chacun pour un objectif commun."
+    ]}
+  ]}
+];
+
+/* ==== Mécanique ==== */
+const $ = s => document.querySelector(s);
+const answers = {};
+let code = '';
+let n = 0;
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(s => { s.hidden = (s.id !== id); });
+  window.scrollTo(0, 0);
+}
+function setProgress(i){
+  const total = VOLETS.length;
+  if (i === null) { $('#step').textContent = ''; $('#bar').style.width = '0'; return; }
+  if (i === 'done') { $('#step').textContent = 'Terminé'; $('#bar').style.width = '100%'; return; }
+  $('#step').textContent = 'Étape ' + (i + 1) + ' sur ' + total;
+  $('#bar').style.width = ((i + 1) / total * 100) + '%';
+}
+function message(title, text){
+  $('#msg-title').textContent = title;
+  $('#msg-text').textContent = text;
+  setProgress(null);
+  show('screen-msg');
+}
+
+function likertHTML(it){
+  let h = '<fieldset class="q" id="w-' + it.id + '"><legend class="qtext"><span class="num">' + n + '</span>' + it.text + '</legend><div class="scale">';
+  for (let v = 1; v <= 5; v++) {
+    h += '<label><input type="radio" name="' + it.id + '" value="' + v + '"><span class="bar" style="height:' + (14 + v * 8) + 'px"></span><span class="n">' + v + '<span class="sr"> sur 5</span></span></label>';
+  }
+  h += '</div><div class="ends" aria-hidden="true"><span>Pas du tout d\u2019accord</span><span>Tout à fait d\u2019accord</span></div>';
+  if (it.nsp) h += '<label class="pill"><input type="radio" name="' + it.id + '" value="' + NSP + '"><span>' + NSP + '</span></label>';
+  return h + '<p class="err">Choisissez une réponse.</p></fieldset>';
+}
+function openHTML(it){
+  return '<div class="q" id="w-' + it.id + '"><label class="qtext" for="f-' + it.id + '"><span class="num">' + n + '</span>' + it.text +
+    (it.required ? '' : ' <span class="opt">(facultatif)</span>') + '</label>' +
+    '<textarea id="f-' + it.id + '" name="' + it.id + '" maxlength="3000"></textarea>' +
+    '<p class="err">Écrivez quelques mots, même « je ne sais pas ».</p></div>';
+}
+function choiceHTML(it){
+  let h = '<fieldset class="q" id="w-' + it.id + '"><legend class="qtext"><span class="num">' + n + '</span>' + it.text + '</legend>';
+  if (it.hint) h += '<p class="hint">' + it.hint + '</p>';
+  h += '<div class="choices">';
+  it.options.forEach(o => { h += '<label class="pill"><input type="radio" name="' + it.id + '" value="' + o + '"><span>' + o + '</span></label>'; });
+  return h + '</div><p class="err">Choisissez une réponse.</p></fieldset>';
+}
+
+function buildForm(){
+  let h = '';
+  VOLETS.forEach((v, i) => {
+    h += '<section class="volet" data-volet="' + i + '" hidden><h2>' + v.title + '</h2>';
+    if (i === 0) h += '<p class="volet-intro">Échelle : 1 = pas du tout d\u2019accord, 5 = tout à fait d\u2019accord.</p>';
+    if (v.intro) h += '<p class="volet-intro">' + v.intro + '</p>';
+    v.items.forEach(it => {
+      n++;
+      h += it.type === 'likert' ? likertHTML(it) : it.type === 'open' ? openHTML(it) : choiceHTML(it);
+    });
+    const last = i === VOLETS.length - 1;
+    if (last) h += '<div class="alert" id="send-err" hidden>L\u2019envoi n\u2019a pas abouti. Vos réponses sont toujours là : vérifiez votre connexion, puis cliquez à nouveau sur « Envoyer mes réponses ».</div>';
+    h += '<div class="nav">' +
+      (i > 0 ? '<button class="btn ghost" type="button" data-go="' + (i - 1) + '">Retour</button>' : '') +
+      (last ? '<button class="btn" type="button" id="send">Envoyer mes réponses</button>'
+            : '<button class="btn" type="button" data-next="' + i + '">Continuer</button>') +
+      '</div></section>';
+  });
+  $('#screen-form').innerHTML = h;
+}
+
+function goTo(i){
+  show('screen-form');
+  document.querySelectorAll('.volet').forEach(s => { s.hidden = Number(s.dataset.volet) !== i; });
+  setProgress(i);
+  window.scrollTo(0, 0);
+}
+
+function isRequired(it){ return it.type === 'open' ? !!it.required : true; }
+function validate(i){
+  let first = null;
+  VOLETS[i].items.forEach(it => {
+    const bad = isRequired(it) && !String(answers[it.id] || '').trim();
+    const w = document.getElementById('w-' + it.id);
+    w.classList.toggle('missing', bad);
+    if (bad && !first) first = w;
+  });
+  if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  return !first;
+}
+
+async function submit(btn){
+  if (!validate(VOLETS.length - 1)) return;
+  const errBox = $('#send-err');
+  errBox.hidden = true;
+  btn.disabled = true; btn.textContent = 'Envoi en cours…';
+  try {
+    const r = await fetch(ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ code: code, answers: answers })
+    });
+    const d = await r.json();
+    if (d.ok) { setProgress('done'); show('screen-done'); return; }
+    if (d.reason === 'already') return message('Vous avez déjà répondu', 'Ce lien a déjà servi : chaque lien ne peut être utilisé qu\u2019une fois. Merci pour votre participation.');
+    if (d.reason === 'closed')  return message('La collecte est terminée', 'Le questionnaire n\u2019accepte plus de réponses.');
+    if (d.reason === 'unknown') return message('Ce lien n\u2019est pas reconnu', 'Vérifiez que vous avez ouvert le lien en entier. En cas de doute, redemandez-le à la personne qui vous l\u2019a envoyé.');
+    throw new Error('server');
+  } catch (e) {
+    errBox.hidden = false;
+    btn.disabled = false; btn.textContent = 'Envoyer mes réponses';
+  }
+}
+
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.type === 'radio') {
+    answers[t.name] = t.value;
+    const w = document.getElementById('w-' + t.name);
+    if (w) w.classList.remove('missing');
+  }
+});
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.tagName === 'TEXTAREA') {
+    answers[t.name] = t.value;
+    if (t.value.trim()) document.getElementById('w-' + t.name).classList.remove('missing');
+  }
+});
+document.addEventListener('click', e => {
+  const t = e.target.closest('button');
+  if (!t) return;
+  if (t.dataset.go !== undefined) goTo(Number(t.dataset.go));
+  else if (t.dataset.next !== undefined) { const i = Number(t.dataset.next); if (validate(i)) goTo(i + 1); }
+  else if (t.id === 'send') submit(t);
+});
+
+async function init(){
+  code = (new URLSearchParams(location.search).get('id') || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (!code) return message('Ce lien est incomplet', 'Ouvrez le lien qui vous a été envoyé : il se termine par « ?id= » suivi d\u2019un code.');
+  if (ENDPOINT.indexOf('COLLEZ') === 0) return message('Questionnaire pas encore configuré', 'L\u2019adresse du script n\u2019est pas renseignée dans le fichier.');
+  buildForm();
+  if (DEADLINE) { const d = $('#deadline'); d.textContent = 'Merci de répondre avant ' + DEADLINE + '.'; d.hidden = false; }
+  try {
+    const r = await fetch(ENDPOINT + '?check=' + encodeURIComponent(code));
+    const d = await r.json();
+    if (d.status === 'done')    return message('Vous avez déjà répondu', 'Ce lien a déjà servi : chaque lien ne peut être utilisé qu\u2019une fois. Merci pour votre participation.');
+    if (d.status === 'unknown') return message('Ce lien n\u2019est pas reconnu', 'Vérifiez que vous avez ouvert le lien en entier. En cas de doute, redemandez-le à la personne qui vous l\u2019a envoyé.');
+    if (d.status === 'closed')  return message('La collecte est terminée', 'Le questionnaire n\u2019accepte plus de réponses.');
+  } catch (e) { /* hors ligne ou Google lent : on laisse répondre, le script vérifiera à l'envoi */ }
+  setProgress(null);
+  show('screen-intro');
+}
+init();
+</script>
+</body>
+</html>
