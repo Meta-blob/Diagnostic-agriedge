@@ -152,6 +152,7 @@ textarea:focus{border-color:var(--field);outline:none;box-shadow:0 0 0 3px var(-
   <section class="screen" id="screen-done" hidden>
     <h1>Merci, vos réponses sont bien arrivées.</h1>
     <p class="lead">Vous pouvez fermer cette page.</p>
+    <p class="alert" id="send-fail" hidden>Attention : vos réponses n'ont finalement pas pu être envoyées. Rouvrez votre lien dans quelques minutes et recommencez.</p>
   </section>
 </main>
 
@@ -254,7 +255,6 @@ function buildForm(){
       h += it.type === 'likert' ? likertHTML(it) : it.type === 'open' ? openHTML(it) : choiceHTML(it);
     });
     const last = i === VOLETS.length - 1;
-    if (last) h += '<div class="alert" id="send-err" hidden>L\u2019envoi n\u2019a pas abouti. Vos réponses sont toujours là : vérifiez votre connexion, puis cliquez à nouveau sur « Envoyer mes réponses ».<br><small id="send-detail" style="opacity:.75"></small></div>';
     h += '<div class="nav">' +
       (i > 0 ? '<button class="btn ghost" type="button" data-go="' + (i - 1) + '">Retour</button>' : '') +
       (last ? '<button class="btn" type="button" id="send">Envoyer mes réponses</button>'
@@ -286,34 +286,35 @@ function validate(i){
 
 async function submit(btn){
   if (!validate(VOLETS.length - 1)) return;
-  const errBox = $('#send-err');
-  errBox.hidden = true;
-  btn.disabled = true; btn.textContent = 'Envoi en cours…';
+  // Merci tout de suite : l'envoi part en arrière-plan.
+  setProgress('done');
+  show('screen-done');
+  envoyer(JSON.stringify({ code: code, answers: answers }), 0);
+}
+
+async function envoyer(corps, essai){
   try {
     const r = await fetch(ENDPOINT, {
       method: 'POST',
       cache: 'no-store',
+      keepalive: true,   // l'envoi se termine même si la personne ferme l'onglet
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ code: code, answers: answers })
+      body: corps
     });
     const d = await r.json();
-    if (d.ok) { setProgress('done'); show('screen-done'); return; }
-    if (d.reason === 'already') return message('Vous avez déjà répondu', 'Ce lien a déjà servi : chaque lien ne peut être utilisé qu\u2019une fois. Merci pour votre participation.');
-    if (d.reason === 'closed')  return message('La collecte est terminée', 'Le questionnaire n\u2019accepte plus de réponses.');
-    if (d.reason === 'unknown') return message('Ce lien n\u2019est pas reconnu', 'Vérifiez que vous avez ouvert le lien en entier. En cas de doute, redemandez-le à la personne qui vous l\u2019a envoyé.');
-    throw new Error(d.detail || d.reason || 'réponse inattendue');
+    if (d.ok || d.reason === 'already') return;   // enregistré (ou déjà enregistré) : rien à signaler
+    throw new Error(d.detail || d.reason || 'refus');
   } catch (e) {
-    // Avant d'afficher une erreur, on vérifie si la réponse est quand même arrivée.
+    if (essai < 2) { setTimeout(() => envoyer(corps, essai + 1), 3000); return; }
+    // Dernier recours : la réponse est-elle quand même arrivée ?
     try {
       const r2 = await fetch(ENDPOINT, { method: 'POST', cache: 'no-store',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ type: 'check', code: code }) });
       const d2 = await r2.json();
-      if (d2.status === 'done') { setProgress('done'); show('screen-done'); return; }
+      if (d2.status === 'done') return;
     } catch (x) {}
-    $('#send-detail').textContent = 'Détail technique : ' + (e && e.message ? e.message : e);
-    errBox.hidden = false;
-    btn.disabled = false; btn.textContent = 'Envoyer mes réponses';
+    $('#send-fail').hidden = false;
   }
 }
 
