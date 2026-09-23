@@ -232,7 +232,7 @@ function likertHTML(it){
 }
 function openHTML(it){
   return '<div class="q" id="w-' + it.id + '"><label class="qtext" for="f-' + it.id + '"><span class="num">' + n + '</span>' + it.text +
-    (it.required ? '' : ' <span class="opt">(facultatif)</span>') + '</label>' +
+    '</label>' +
     '<textarea id="f-' + it.id + '" name="' + it.id + '" maxlength="3000"></textarea>' +
     '<p class="err">Écrivez quelques mots, même « je ne sais pas ».</p></div>';
 }
@@ -271,7 +271,7 @@ function goTo(i){
   window.scrollTo(0, 0);
 }
 
-function isRequired(it){ return it.type === 'open' ? !!it.required : true; }
+function isRequired(it){ return true; } // toutes les questions sont obligatoires
 function validate(i){
   let first = null;
   VOLETS[i].items.forEach(it => {
